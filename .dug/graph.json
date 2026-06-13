@@ -1,0 +1,88 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "kind": "FILE",
+      "path": "src/dug/git_context.py",
+      "language": "python",
+      "last_modified": 1781350503.5458302,
+      "size": 1511,
+      "id": "file:src/dug/git_context.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/config.py",
+      "language": "python",
+      "last_modified": 1781350965.9144666,
+      "size": 1188,
+      "id": "file:src/dug/config.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/graph.py",
+      "language": "python",
+      "last_modified": 1781350977.9571512,
+      "size": 12647,
+      "id": "file:src/dug/graph.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/retriever.py",
+      "language": "python",
+      "last_modified": 1781350557.9078999,
+      "size": 220,
+      "id": "file:src/dug/retriever.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/__init__.py",
+      "language": "python",
+      "last_modified": 1781350484.0731883,
+      "size": 0,
+      "id": "file:src/dug/__init__.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/embeddings.py",
+      "language": "python",
+      "last_modified": 1781350495.1896548,
+      "size": 862,
+      "id": "file:src/dug/embeddings.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/indexer.py",
+      "language": "python",
+      "last_modified": 1781350553.4326735,
+      "size": 1102,
+      "id": "file:src/dug/indexer.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/watcher.py",
+      "language": "python",
+      "last_modified": 1781350561.981646,
+      "size": 167,
+      "id": "file:src/dug/watcher.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/__main__.py",
+      "language": "python",
+      "last_modified": 1781350752.7847128,
+      "size": 5905,
+      "id": "file:src/dug/__main__.py"
+    },
+    {
+      "kind": "FILE",
+      "path": "src/dug/verifier.py",
+      "language": "python",
+      "last_modified": 1781350559.3397489,
+      "size": 227,
+      "id": "file:src/dug/verifier.py"
+    }
+  ],
+  "edges": []
+}
