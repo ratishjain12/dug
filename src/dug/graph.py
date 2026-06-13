@@ -179,6 +179,56 @@ class CodeGraph:
             kinds[k] = kinds.get(k, 0) + 1
         return {"nodes": dict(kinds), "edges": self.g.number_of_edges()}
 
+    # -- incremental update helpers ----------------------------------------
+
+    def remove_file_data(self, rel_path: str) -> None:
+        """Remove FILE node, all its SYMBOL nodes, and all their edges."""
+        file_id = f"file:{rel_path}"
+
+        sym_nodes = [
+            n for n, d in self.g.nodes(data=True)
+            if d.get("kind") == "SYMBOL" and d.get("file_path") == rel_path
+        ]
+        for sym in sym_nodes:
+            self.g.remove_node(sym)
+
+        if self.g.has_node(file_id):
+            self.g.remove_node(file_id)  # networkx removes all edges automatically
+
+    def update_file_data(self, file_path: Path, root: Path,
+                         all_file_rels: set[str]) -> None:
+        """Remove stale data for a file then re-add fresh nodes and edges."""
+        rel = str(file_path.relative_to(root))
+        self.remove_file_data(rel)
+
+        if not file_path.exists():
+            return
+
+        self.add_file(file_path, root)
+
+        lang = _ext_to_lang(file_path.suffix)
+        if not lang:
+            return
+
+        for sym in extract_symbols_ripgrep(file_path, root):
+            self.add_symbol(sym["name"], sym["kind"], sym["file"], sym["line"])
+
+        for imp in extract_imports(file_path, root, lang):
+            target = _resolve_import_to_file(imp, all_file_rels, lang)
+            if target and target != rel:
+                self.add_import_edge(rel, target)
+
+    def prune_stale_nodes(self, root: Path) -> list[str]:
+        """Remove FILE nodes whose path no longer exists on disk."""
+        stale = [
+            d["path"]
+            for _, d in list(self.g.nodes(data=True))
+            if d.get("kind") == "FILE" and not (root / d.get("path", "")).exists()
+        ]
+        for rel_path in stale:
+            self.remove_file_data(rel_path)
+        return stale
+
 
 # ---------------------------------------------------------------------------
 # Walk + symbol extraction

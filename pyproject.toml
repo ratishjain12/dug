@@ -14,6 +14,7 @@ dependencies = [
   "watchdog",
   "sentence-transformers",
   "openai",
+  "tree-sitter-typescript>=0.23.2",
 ]
 
 [project.scripts]

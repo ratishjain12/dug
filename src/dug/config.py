@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 DEFAULTS = {
@@ -8,11 +9,39 @@ DEFAULTS = {
     "ignore_paths": ["node_modules", ".git", "build", "dist", "vendor", "__pycache__", ".venv", "venv", ".tox", "eggs", ".eggs"],
     "git_history_depth": 50,
     "max_files_in_prompt": 5,
+    "exclude_test_files": True,
 }
 
 
+def find_repo_root() -> Path:
+    """
+    Walk up from cwd looking for .git/. Falls back to cwd if not in a git repo.
+    Also accepts a repo root that already has .dug/ (supports non-git projects
+    that ran dug init manually).
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            cwd=Path.cwd(),
+        )
+        if result.returncode == 0:
+            return Path(result.stdout.strip())
+    except FileNotFoundError:
+        pass
+
+    # Fallback: walk up looking for an existing .dug/ directory
+    current = Path.cwd()
+    for parent in [current, *current.parents]:
+        if (parent / ".dug").exists():
+            return parent
+
+    return Path.cwd()
+
+
 def get_dug_dir() -> Path:
-    return Path.cwd() / ".dug"
+    return find_repo_root() / ".dug"
 
 
 def get_config_path() -> Path:

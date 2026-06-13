@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# dug local index — machine-specific, never commit
+.dug/
