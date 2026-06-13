@@ -1,5 +1,21 @@
 from __future__ import annotations
 
+import logging
+import os
+import warnings
+
+# Suppress HuggingFace noise before any library import
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+os.environ.setdefault("HF_HUB_VERBOSITY", "error")
+warnings.filterwarnings("ignore", category=UserWarning, module="huggingface_hub")
+warnings.filterwarnings("ignore", category=FutureWarning, module="transformers")
+
+for _noisy in ("sentence_transformers", "huggingface_hub", "transformers",
+               "torch", "tokenizers"):
+    logging.getLogger(_noisy).setLevel(logging.ERROR)
+
 
 class LocalEmbedder:
     def __init__(self):
