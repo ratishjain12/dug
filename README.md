@@ -59,34 +59,47 @@ pip install --upgrade dug-cli
 ## Quick start
 
 ```sh
-# 1. Run once in your repo root to build the index
+# 1. Run once in your repo root — auto-detects languages, builds index
 cd /your/project
 dug init
 
 # 2. Paste any bug report or stack trace
 dug "NullPointerException in UserService.authenticate at line 42"
 
-# dug prints a ready-to-paste Claude Code prompt with ranked file context
+# 3. After you fix the bug, tell dug which files had the fix
+dug solved
 ```
 
-**Sample output:**
+`dug solved` shows what it suggested and lets you confirm or correct:
+```
+Last query: "NullPointerException in UserService.authenticate at line 42"
+Suggested files were:
+  - src/auth/UserService.java
+  - src/config/AppConfig.java
+
+Which files actually contained the bug? (comma-separated paths)
+> src/auth/UserService.java
+```
+
+Next time a similar error comes in, that file ranks higher automatically.
+
+**Sample query output:**
 
 ```
-You are a senior engineer debugging this issue:
+## Bug Report
 
-  NullPointerException in UserService.authenticate at line 42
+**Error:** NullPointerException in UserService.authenticate at line 42
+**Error type:** `NullPointerException`
 
-Relevant files (ranked by relevance):
+**Files to investigate (ranked by relevance):**
+  - src/auth/UserService.java  (modified in relevant recent commit, semantic match 3.4/5)
+  - src/config/AppConfig.java  (semantic match 2.1/5)
 
-1. src/auth/UserService.java:35
-   authenticate() — modified 2 commits ago
-   ...
+**Recent commits touching these files:**
+  a1b2c3: "fix: add null check in auth flow"  (1d ago)
 
-2. src/config/AppConfig.java:12
-   loadConfig() — error pattern match
-   ...
-
-[full function bodies + graph context follow]
+**Suggested starting point:**
+  Begin at src/auth/UserService.java.
 ```
 
 ---
@@ -99,15 +112,15 @@ Relevant files (ranked by relevance):
 |---|---|---|
 | Structural graph | File → Symbol → Commit nodes (networkx) | Import chains, recent changes |
 | Semantic index | Function embeddings in LanceDB (fastembed / ONNX) | Meaning-level matches |
-| History log | Past bug→fix pairs | Learning from outcomes |
+| History log | Past bug→file resolutions | Learning from outcomes |
 
 At query time, three signals are combined into a ranked list:
 
 - **Structural score** — imports your error file, was modified in a related commit
 - **Semantic score** — cosine similarity between bug text and function bodies
-- **History boost** — similar past bugs pointed here
+- **History boost** — similar past bugs pointed here, scaled by similarity
 
-Languages auto-detected on `dug init` — no manual config needed. The index stays fresh via git hooks (`post-commit`, `post-checkout`) and an optional file watcher.
+Languages are auto-detected on `dug init` — no manual config needed. The index stays fresh via git hooks (`post-commit`, `post-checkout`) installed automatically.
 
 ---
 
@@ -115,20 +128,20 @@ Languages auto-detected on `dug init` — no manual config needed. The index sta
 
 | Command | What it does |
 |---|---|
-| `dug init` | Index the current repo (auto-detects languages, builds graph + embeddings) |
+| `dug init` | Interactive setup — auto-detects languages, builds index, installs git hooks |
 | `dug "error text"` | Generate a Claude Code prompt for the bug |
-| `dug update` | Re-index files changed since last commit |
-| `dug watch` | Watch for file saves and re-index in real time |
+| `dug update` | Re-index files changed since last commit (git hooks run this automatically) |
+| `dug watch` | Background watcher — reindexes on every file save (1.5s debounce) |
+| `dug solved` | Record which files fixed the last bug — improves future rankings |
+| `dug solved --files "path1,path2"` | Non-interactive version of `dug solved` |
 | `dug stats` | Show index size (nodes, edges, chunks) |
 | `dug config` | View / edit configuration |
-| `dug feedback good` | Mark last query as helpful (improves future results) |
-| `dug feedback bad` | Mark last query as unhelpful |
 
 ---
 
 ## Configuration
 
-`dug init` creates `.dug/config.json` in the repo root. Languages are auto-detected from your codebase — you rarely need to edit this manually.
+`dug init` creates `.dug/config.json` in the repo root. Languages are auto-detected from your codebase.
 
 ```json
 {
