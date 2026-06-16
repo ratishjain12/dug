@@ -1,0 +1,51 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release assets and compute SHA256
+        id: hashes
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+
+          ARM64_URL="https://github.com/ratishjain12/dug/releases/download/${TAG}/dug-macos-arm64"
+          AMD64_URL="https://github.com/ratishjain12/dug/releases/download/${TAG}/dug-macos-amd64"
+
+          ARM64_SHA=$(curl -fsSL "$ARM64_URL" | sha256sum | cut -d' ' -f1)
+          AMD64_SHA=$(curl -fsSL "$AMD64_URL" | sha256sum | cut -d' ' -f1)
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "arm64_sha=$ARM64_SHA" >> $GITHUB_OUTPUT
+          echo "amd64_sha=$AMD64_SHA" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-dug repo
+        uses: actions/checkout@v4
+        with:
+          repository: ratishjain12/homebrew-dug
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-dug
+
+      - name: Update formula
+        run: |
+          cd homebrew-dug
+          sed -i "s/version \".*\"/version \"${{ steps.hashes.outputs.version }}\"/" Formula/dug-cli.rb
+          sed -i "s/REPLACE_WITH_ARM64_SHA256/${{ steps.hashes.outputs.arm64_sha }}/" Formula/dug-cli.rb
+          sed -i "s/REPLACE_WITH_AMD64_SHA256/${{ steps.hashes.outputs.amd64_sha }}/" Formula/dug-cli.rb
+          # Also update existing sha256 lines
+          sed -i "/on_arm/,/end/{s/sha256 \".*\"/sha256 \"${{ steps.hashes.outputs.arm64_sha }}\"/}" Formula/dug-cli.rb
+          sed -i "/on_intel/,/end/{s/sha256 \".*\"/sha256 \"${{ steps.hashes.outputs.amd64_sha }}\"/}" Formula/dug-cli.rb
+
+      - name: Commit and push
+        run: |
+          cd homebrew-dug
+          git config user.name "ratishjain12"
+          git config user.email "ratishjain6@gmail.com"
+          git add Formula/dug-cli.rb
+          git diff --staged --quiet || git commit -m "Update dug-cli to ${{ github.event.release.tag_name }}"
+          git push

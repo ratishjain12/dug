@@ -6,20 +6,38 @@ import os
 import stat
 from pathlib import Path
 
+_RESOLVE_DUG = """\
+# Resolve dug — works whether installed via pipx, brew, uv, or binary
+_dug_cmd() {
+  if command -v dug >/dev/null 2>&1; then
+    dug "$@"
+  elif command -v uvx >/dev/null 2>&1; then
+    uvx dug-cli "$@"
+  elif command -v pipx >/dev/null 2>&1; then
+    pipx run dug-cli "$@"
+  else
+    echo "[dug] dug not found on PATH. Install with: pipx install dug-cli" >&2
+    exit 0   # exit 0 so git commit still succeeds
+  fi
+}
+"""
+
 _POST_COMMIT = """\
 #!/bin/sh
 # dug: reindex files changed in this commit
-dug update --changed-only
+""" + _RESOLVE_DUG + """
+_dug_cmd update --changed-only
 """
 
 _POST_CHECKOUT = """\
 #!/bin/sh
 # dug: reindex files that differ after a branch switch
+""" + _RESOLVE_DUG + """
 PREV_HEAD="$1"
 NEW_HEAD="$2"
 IS_BRANCH="$3"
 if [ "$IS_BRANCH" = "1" ]; then
-    dug update --branch-switch --from="$PREV_HEAD" --to="$NEW_HEAD"
+  _dug_cmd update --branch-switch --from="$PREV_HEAD" --to="$NEW_HEAD"
 fi
 """
 

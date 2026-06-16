@@ -1,8 +1,29 @@
 [project]
 name = "dug-cli"
 version = "0.1.0"
-description = "Dig into any bug with full codebase context"
+description = "Dig into any bug with full codebase context — zero LLM calls"
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.10"
+authors = [{ name = "Ratish Jain", email = "ratishjain6@gmail.com" }]
+keywords = ["cli", "debugging", "code-search", "developer-tools", "claude"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Debuggers",
+]
+
+[project.urls]
+Homepage = "https://github.com/ratishjain12/dug"
+Repository = "https://github.com/ratishjain12/dug"
+"Bug Tracker" = "https://github.com/ratishjain12/dug/issues"
+
 dependencies = [
   "click",
   "networkx",
@@ -10,12 +31,16 @@ dependencies = [
   "tree-sitter-python",
   "tree-sitter-java",
   "tree-sitter-javascript",
+  "tree-sitter-typescript>=0.23.2",
   "lancedb",
   "watchdog",
-  "sentence-transformers",
-  "openai",
-  "tree-sitter-typescript>=0.23.2",
 ]
+
+[project.optional-dependencies]
+# Installed automatically on first use — kept optional to keep base binary small
+local  = ["sentence-transformers"]
+openai = ["openai"]
+all    = ["sentence-transformers", "openai"]
 
 [project.scripts]
 dug = "dug.__main__:cli"

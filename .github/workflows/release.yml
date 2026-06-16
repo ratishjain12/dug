@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write   # needed to create GitHub Release and upload assets
+
+jobs:
+  # -----------------------------------------------------------------------
+  # 1. Publish to PyPI
+  # -----------------------------------------------------------------------
+  pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Build
+        run: uv build
+
+      - name: Publish
+        run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+  # -----------------------------------------------------------------------
+  # 2. Build standalone binaries with PyInstaller
+  # -----------------------------------------------------------------------
+  binaries:
+    name: Build binary — ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14          # Apple Silicon (arm64)
+            target: macos-arm64
+            bin: dug
+
+          - os: macos-13          # Intel (amd64)
+            target: macos-amd64
+            bin: dug
+
+          - os: ubuntu-latest
+            target: linux-amd64
+            bin: dug
+
+          - os: windows-latest
+            target: windows-amd64
+            bin: dug.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Install dependencies + PyInstaller
+        # Install base deps only (no sentence-transformers/openai/torch)
+        run: uv pip install --system -e "." pyinstaller
+
+      - name: Build binary
+        # Exclude heavy ML packages — they auto-install on first use instead
+        run: >
+          pyinstaller
+          --onefile
+          --name dug
+          --collect-submodules dug
+          --hidden-import=dug.__main__
+          --exclude-module torch
+          --exclude-module transformers
+          --exclude-module sentence_transformers
+          --exclude-module tokenizers
+          --exclude-module scipy
+          --exclude-module sklearn
+          --exclude-module openai
+          src/dug/__main__.py
+
+      - name: Rename binary with target suffix
+        shell: bash
+        run: |
+          mkdir -p release
+          cp dist/${{ matrix.bin }} release/dug-${{ matrix.target }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: release/
+
+  # -----------------------------------------------------------------------
+  # 3. Create GitHub Release with all assets
+  # -----------------------------------------------------------------------
+  release:
+    name: Create GitHub Release
+    needs: [pypi, binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Build wheel for release assets
+        run: uv build
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          merge-multiple: true
+          path: release/
+
+      - name: Show release assets
+        run: ls -lh release/ dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            release/*

@@ -168,8 +168,6 @@ dependencies = [
     { name = "lancedb" },
     { name = "networkx", version = "3.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "openai" },
-    { name = "sentence-transformers" },
     { name = "tree-sitter" },
     { name = "tree-sitter-java" },
     { name = "tree-sitter-javascript" },
@@ -178,13 +176,27 @@ dependencies = [
     { name = "watchdog" },
 ]
 
+[package.optional-dependencies]
+all = [
+    { name = "openai" },
+    { name = "sentence-transformers" },
+]
+local = [
+    { name = "sentence-transformers" },
+]
+openai = [
+    { name = "openai" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "click" },
     { name = "lancedb" },
     { name = "networkx" },
-    { name = "openai" },
-    { name = "sentence-transformers" },
+    { name = "openai", marker = "extra == 'all'" },
+    { name = "openai", marker = "extra == 'openai'" },
+    { name = "sentence-transformers", marker = "extra == 'all'" },
+    { name = "sentence-transformers", marker = "extra == 'local'" },
     { name = "tree-sitter", specifier = ">=0.22" },
     { name = "tree-sitter-java" },
     { name = "tree-sitter-javascript" },
@@ -192,6 +204,7 @@ requires-dist = [
     { name = "tree-sitter-typescript", specifier = ">=0.23.2" },
     { name = "watchdog" },
 ]
+provides-extras = ["local", "openai", "all"]
 
 [[package]]
 name = "exceptiongroup"

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import logging
 import os
+import subprocess
+import sys
 import warnings
 
 # Suppress HuggingFace noise before any library import
@@ -16,9 +18,51 @@ for _noisy in ("sentence_transformers", "huggingface_hub", "transformers",
                "torch", "tokenizers"):
     logging.getLogger(_noisy).setLevel(logging.ERROR)
 
+# ---------------------------------------------------------------------------
+# Dependency installer
+# ---------------------------------------------------------------------------
+
+_LOCAL_DEPS  = ["sentence-transformers"]
+_OPENAI_DEPS = ["openai"]
+
+
+def _ensure_installed(packages: list[str], label: str) -> None:
+    """Check if packages are importable; pip-install them if not."""
+    import importlib
+    missing = []
+    for pkg in packages:
+        module = pkg.replace("-", "_").split("[")[0]
+        try:
+            importlib.import_module(module)
+        except ImportError:
+            missing.append(pkg)
+
+    if not missing:
+        return
+
+    print(f"\n[dug] {label} dependencies not found: {', '.join(missing)}")
+    print(f"[dug] Installing (one-time download)...\n")
+
+    try:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "--quiet", *missing],
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+        print(f"\n[dug] ✓ {label} dependencies installed.\n")
+    except subprocess.CalledProcessError:
+        print(f"\n[dug] ✗ Auto-install failed. Run manually:")
+        print(f"      pip install {' '.join(missing)}")
+        sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# Embedders
+# ---------------------------------------------------------------------------
 
 class LocalEmbedder:
     def __init__(self):
+        _ensure_installed(_LOCAL_DEPS, "Local embedding")
         from sentence_transformers import SentenceTransformer
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -28,6 +72,7 @@ class LocalEmbedder:
 
 class OpenAIEmbedder:
     def __init__(self, api_key: str):
+        _ensure_installed(_OPENAI_DEPS, "OpenAI")
         from openai import OpenAI
         self.client = OpenAI(api_key=api_key)
 

@@ -1,0 +1,23 @@
+{
+  "version": "0.1.0",
+  "description": "Dig into any bug with full codebase context — zero LLM calls",
+  "homepage": "https://github.com/ratishjain12/dug",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/ratishjain12/dug/releases/download/v0.1.0/dug-windows-amd64.exe",
+      "hash": "REPLACE_WITH_SHA256"
+    }
+  },
+  "bin": "dug-windows-amd64.exe",
+  "checkver": {
+    "github": "https://github.com/ratishjain12/dug"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/ratishjain12/dug/releases/download/v$version/dug-windows-amd64.exe"
+      }
+    }
+  }
+}
