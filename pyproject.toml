@@ -18,12 +18,6 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Topic :: Software Development :: Debuggers",
 ]
-
-[project.urls]
-Homepage = "https://github.com/ratishjain12/dug"
-Repository = "https://github.com/ratishjain12/dug"
-"Bug Tracker" = "https://github.com/ratishjain12/dug/issues"
-
 dependencies = [
   "click",
   "networkx",
@@ -36,8 +30,12 @@ dependencies = [
   "watchdog",
 ]
 
+[project.urls]
+Homepage = "https://github.com/ratishjain12/dug"
+Repository = "https://github.com/ratishjain12/dug"
+"Bug Tracker" = "https://github.com/ratishjain12/dug/issues"
+
 [project.optional-dependencies]
-# Installed automatically on first use — kept optional to keep base binary small
 local  = ["sentence-transformers"]
 openai = ["openai"]
 all    = ["sentence-transformers", "openai"]
