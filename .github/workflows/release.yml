@@ -81,7 +81,7 @@ jobs:
           --exclude-module scipy
           --exclude-module sklearn
           --exclude-module openai
-          src/dug/__main__.py
+          main.py
 
       - name: Rename binary with target suffix
         shell: bash
