@@ -84,7 +84,14 @@ class OpenAIEmbedder:
         return response.data[0].embedding
 
 
+_cache: dict = {}
+
+
 def get_embedder(config: dict) -> LocalEmbedder | OpenAIEmbedder:
-    if config.get("embedding_mode") == "openai":
-        return OpenAIEmbedder(api_key=config["api_key"])
-    return LocalEmbedder()
+    mode = config.get("embedding_mode", "local")
+    if mode not in _cache:
+        if mode == "openai":
+            _cache[mode] = OpenAIEmbedder(api_key=config["api_key"])
+        else:
+            _cache[mode] = LocalEmbedder()
+    return _cache[mode]
