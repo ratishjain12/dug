@@ -40,6 +40,16 @@ def _ensure_installed(packages: list[str], label: str) -> None:
     if not missing:
         return
 
+    # PyInstaller binary: sys.executable is the frozen binary, not Python
+    if getattr(sys, "frozen", False):
+        print(f"\n[dug] Running as a standalone binary — cannot auto-install {label} packages.")
+        print(f"[dug] Switch to OpenAI embeddings instead:")
+        print(f"      dug config set embedding_mode openai")
+        print(f"      dug config set api_key <your-openai-key>")
+        print(f"[dug] Or reinstall dug via pipx for local embeddings:")
+        print(f"      pipx install dug-cli")
+        sys.exit(1)
+
     print(f"\n[dug] {label} dependencies not found: {', '.join(missing)}")
     print(f"[dug] Installing (one-time download)...\n")
 
