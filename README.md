@@ -12,19 +12,46 @@
 
 ## Install
 
+### macOS (Homebrew) — recommended for Mac users
 ```sh
-# Recommended
-pipx install dug-cli
-
-# macOS (Homebrew)
 brew tap ratishjain12/dug
+brew trust ratishjain12/dug
 brew install dug-cli
+```
 
-# One-liner (Linux / macOS)
+### pipx — recommended for Python users
+```sh
+pipx install dug-cli
+```
+
+### One-liner (Linux / macOS)
+```sh
 curl -fsSL https://raw.githubusercontent.com/ratishjain12/dug/main/install.sh | sh
+```
 
-# Inside a virtualenv
+### pip (inside a virtualenv)
+```sh
 pip install dug-cli
+```
+
+---
+
+## Update
+
+### Homebrew
+```sh
+brew update
+brew upgrade dug-cli
+```
+
+### pipx
+```sh
+pipx upgrade dug-cli
+```
+
+### pip
+```sh
+pip install --upgrade dug-cli
 ```
 
 ---
@@ -71,7 +98,7 @@ Relevant files (ranked by relevance):
 | Layer | What it builds | Used for |
 |---|---|---|
 | Structural graph | File → Symbol → Commit nodes (networkx) | Import chains, recent changes |
-| Semantic index | Function embeddings in LanceDB (sentence-transformers) | Meaning-level matches |
+| Semantic index | Function embeddings in LanceDB (fastembed / ONNX) | Meaning-level matches |
 | History log | Past bug→fix pairs | Learning from outcomes |
 
 At query time, three signals are combined into a ranked list:
@@ -80,7 +107,7 @@ At query time, three signals are combined into a ranked list:
 - **Semantic score** — cosine similarity between bug text and function bodies
 - **History boost** — similar past bugs pointed here
 
-The index stays fresh via git hooks (`post-commit`, `post-checkout`) and an optional file watcher.
+Languages auto-detected on `dug init` — no manual config needed. The index stays fresh via git hooks (`post-commit`, `post-checkout`) and an optional file watcher.
 
 ---
 
@@ -88,7 +115,7 @@ The index stays fresh via git hooks (`post-commit`, `post-checkout`) and an opti
 
 | Command | What it does |
 |---|---|
-| `dug init` | Index the current repo (builds graph + embeddings) |
+| `dug init` | Index the current repo (auto-detects languages, builds graph + embeddings) |
 | `dug "error text"` | Generate a Claude Code prompt for the bug |
 | `dug update` | Re-index files changed since last commit |
 | `dug watch` | Watch for file saves and re-index in real time |
@@ -97,25 +124,16 @@ The index stays fresh via git hooks (`post-commit`, `post-checkout`) and an opti
 | `dug feedback good` | Mark last query as helpful (improves future results) |
 | `dug feedback bad` | Mark last query as unhelpful |
 
-### Options
-
-```sh
-dug init --local          # Use local embeddings (default, no API key needed)
-dug init --openai         # Use OpenAI text-embedding-3-small (needs OPENAI_API_KEY)
-dug "error" --files 3     # Limit to top 3 files in prompt
-dug "error" --no-history  # Skip learning loop context
-```
-
 ---
 
 ## Configuration
 
-`dug init` creates `.dug/config.json` in the repo root. You can also edit it with `dug config set <key> <value>`.
+`dug init` creates `.dug/config.json` in the repo root. Languages are auto-detected from your codebase — you rarely need to edit this manually.
 
 ```json
 {
   "embedding_mode": "local",
-  "languages": ["python", "java", "typescript", "javascript"],
+  "languages": ["typescript", "javascript"],
   "max_files_in_prompt": 5,
   "git_history_depth": 50,
   "exclude_test_files": true
