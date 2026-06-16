@@ -15,6 +15,7 @@ jobs:
   pypi:
     name: Publish to PyPI
     runs-on: ubuntu-latest
+    continue-on-error: true  # version already on PyPI shouldn't block the GitHub Release
     steps:
       - uses: actions/checkout@v4
 
@@ -99,7 +100,7 @@ jobs:
   # -----------------------------------------------------------------------
   release:
     name: Create GitHub Release
-    needs: [pypi, binaries]
+    needs: [binaries]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
