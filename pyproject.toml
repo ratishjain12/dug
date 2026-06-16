@@ -1,6 +1,6 @@
 [project]
 name = "dug-cli"
-version = "0.1.4"
+version = "0.1.5"
 description = "Dig into any bug with full codebase context — zero LLM calls"
 readme = "README.md"
 license = { text = "MIT" }

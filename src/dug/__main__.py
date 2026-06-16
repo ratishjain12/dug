@@ -27,13 +27,18 @@ LANG_EXTENSIONS = {
 }
 
 
-def _detect_languages(root: Path) -> list[str]:
+def _detect_languages(root: Path, ignore_paths: list[str]) -> list[str]:
     detected = []
     for lang, exts in LANG_EXTENSIONS.items():
         for ext in exts:
-            if any(root.rglob(f"*{ext}")):
+            found = False
+            for p in root.rglob(f"*{ext}"):
+                parts = set(p.parts)
+                if not any(ig in parts for ig in ignore_paths):
+                    found = True
+                    break
+            if found:
                 detected.append(lang)
-                break
     return detected or ["python"]
 
 
@@ -74,7 +79,7 @@ def init():
 
     # Language detection
     root = find_repo_root()
-    detected = _detect_languages(root)
+    detected = _detect_languages(root, cfg.get("ignore_paths", []))
     click.echo(f"\nLanguages detected: {', '.join(detected)}")
     cfg["languages"] = detected
 
