@@ -75,11 +75,11 @@ jobs:
           --collect-submodules dug
           --collect-all fastembed
           --collect-all onnxruntime
+          --collect-all tokenizers
           --hidden-import=dug.__main__
           --exclude-module torch
           --exclude-module transformers
           --exclude-module sentence_transformers
-          --exclude-module tokenizers
           --exclude-module openai
           main.py
 
