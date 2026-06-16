@@ -15,14 +15,13 @@ warnings.filterwarnings("ignore", category=UserWarning, module="huggingface_hub"
 warnings.filterwarnings("ignore", category=FutureWarning, module="transformers")
 
 for _noisy in ("sentence_transformers", "huggingface_hub", "transformers",
-               "torch", "tokenizers"):
+               "torch", "tokenizers", "fastembed"):
     logging.getLogger(_noisy).setLevel(logging.ERROR)
 
 # ---------------------------------------------------------------------------
-# Dependency installer
+# Dependency installer (OpenAI only — fastembed is a base dep)
 # ---------------------------------------------------------------------------
 
-_LOCAL_DEPS  = ["sentence-transformers"]
 _OPENAI_DEPS = ["openai"]
 
 
@@ -40,14 +39,9 @@ def _ensure_installed(packages: list[str], label: str) -> None:
     if not missing:
         return
 
-    # PyInstaller binary: sys.executable is the frozen binary, not Python
     if getattr(sys, "frozen", False):
         print(f"\n[dug] Running as a standalone binary — cannot auto-install {label} packages.")
-        print(f"[dug] Switch to OpenAI embeddings instead:")
-        print(f"      dug config set embedding_mode openai")
-        print(f"      dug config set api_key <your-openai-key>")
-        print(f"[dug] Or reinstall dug via pipx for local embeddings:")
-        print(f"      pipx install dug-cli")
+        print(f"[dug] Install via pipx instead: pipx install dug-cli")
         sys.exit(1)
 
     print(f"\n[dug] {label} dependencies not found: {', '.join(missing)}")
@@ -72,12 +66,11 @@ def _ensure_installed(packages: list[str], label: str) -> None:
 
 class LocalEmbedder:
     def __init__(self):
-        _ensure_installed(_LOCAL_DEPS, "Local embedding")
-        from sentence_transformers import SentenceTransformer
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        from fastembed import TextEmbedding
+        self.model = TextEmbedding("sentence-transformers/all-MiniLM-L6-v2")
 
     def embed(self, text: str) -> list[float]:
-        return self.model.encode(text).tolist()
+        return list(self.model.embed([text]))[0].tolist()
 
 
 class OpenAIEmbedder:

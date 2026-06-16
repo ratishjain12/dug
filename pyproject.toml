@@ -1,6 +1,6 @@
 [project]
 name = "dug-cli"
-version = "0.1.3"
+version = "0.1.4"
 description = "Dig into any bug with full codebase context — zero LLM calls"
 readme = "README.md"
 license = { text = "MIT" }
@@ -28,6 +28,7 @@ dependencies = [
   "tree-sitter-typescript>=0.23.2",
   "lancedb",
   "watchdog",
+  "fastembed",
 ]
 
 [project.urls]
@@ -36,9 +37,7 @@ Repository = "https://github.com/ratishjain12/dug"
 "Bug Tracker" = "https://github.com/ratishjain12/dug/issues"
 
 [project.optional-dependencies]
-local  = ["sentence-transformers"]
 openai = ["openai"]
-all    = ["sentence-transformers", "openai"]
 
 [project.scripts]
 dug = "dug.__main__:cli"
