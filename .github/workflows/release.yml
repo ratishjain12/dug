@@ -65,12 +65,14 @@ jobs:
 
       - name: Install dependencies + PyInstaller
         # Install base deps only (no sentence-transformers/openai/torch)
-        run: uv pip install --system -e "." pyinstaller
+        run: |
+          uv venv
+          uv pip install -e "." pyinstaller
 
       - name: Build binary
         # Exclude heavy ML packages — they auto-install on first use instead
         run: >
-          pyinstaller
+          uv run pyinstaller
           --onefile
           --name dug
           --collect-submodules dug
