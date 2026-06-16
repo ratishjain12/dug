@@ -44,10 +44,6 @@ jobs:
             target: macos-arm64
             bin: dug
 
-          - os: macos-13          # Intel (amd64)
-            target: macos-amd64
-            bin: dug
-
           - os: ubuntu-latest
             target: linux-amd64
             bin: dug
