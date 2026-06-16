@@ -129,3 +129,43 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
             release/*
+
+  # -----------------------------------------------------------------------
+  # 4. Update Homebrew tap formula
+  # -----------------------------------------------------------------------
+  update-homebrew:
+    name: Update Homebrew Formula
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute SHA256 of macOS arm64 binary
+        id: hashes
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          ARM64_URL="https://github.com/ratishjain12/dug/releases/download/${TAG}/dug-macos-arm64"
+          ARM64_SHA=$(curl -fsSL "$ARM64_URL" | sha256sum | cut -d' ' -f1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "arm64_sha=$ARM64_SHA" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-dug repo
+        uses: actions/checkout@v4
+        with:
+          repository: ratishjain12/homebrew-dug
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-dug
+
+      - name: Update formula
+        run: |
+          cd homebrew-dug
+          sed -i "s/version \".*\"/version \"${{ steps.hashes.outputs.version }}\"/" Formula/dug-cli.rb
+          sed -i "/on_arm/,/end/{s/sha256 \".*\"/sha256 \"${{ steps.hashes.outputs.arm64_sha }}\"/}" Formula/dug-cli.rb
+
+      - name: Commit and push
+        run: |
+          cd homebrew-dug
+          git config user.name "ratishjain12"
+          git config user.email "ratishjain6@gmail.com"
+          git add Formula/dug-cli.rb
+          git diff --staged --quiet || git commit -m "Update dug-cli to ${{ github.ref_name }}"
+          git push
